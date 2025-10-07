@@ -207,14 +207,30 @@ git commit -m "style: improve button hover effects"
 
 ### Running Tests
 
+This project uses Jest and React Testing Library for unit testing.
+
+To run the tests:
 ```bash
-# Run linting
+npm test
+```
+
+To run tests in watch mode (useful during development):
+```bash
+npm run test:watch
+```
+
+To run linting:
+```bash
 npm run lint
+```
 
-# Check TypeScript compilation
+To check TypeScript compilation:
+```bash
 npx tsc --noEmit
+```
 
-# Test build process
+To test build process:
+```bash
 npm run build
 ```
 
