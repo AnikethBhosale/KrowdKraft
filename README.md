@@ -162,6 +162,16 @@ KrowdKraft/
 
 </div>
 
+### Repository Statistics
+
+| Metric | Count |
+|--------|-------|
+| ⭐ **Stars** | ${STARS} |
+| 🍴 **Forks** | ${FORKS} |
+| 🐛 **Open Issues** | ${OPEN_ISSUES} |
+| ✅ **Closed Issues** | ${CLOSED_ISSUES} |
+| 👥 **Total Contributors** | ${TOTAL_CONTRIBUTORS} |
+
 ### 🏆 Top Contributors
 
 <table>
