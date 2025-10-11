@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
-  const Parser = (await import('rss-parser')).default;
-  const parser = new Parser();
-   const feed = await parser.parseURL('https://medium.com/feed/@<your-handle-or-org>');
-  const items = (feed.items || []).slice(0, 6).map(i => ({
-    title: i.title,
-    link: i.link,
-    isoDate: i.isoDate,
-  }));
-
   try {
     const body = await request.json()
     const { email } = body
