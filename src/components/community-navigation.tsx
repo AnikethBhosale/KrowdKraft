@@ -2,15 +2,17 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { useState } from "react"
+import React, { useState } from "react"
 import { Menu, X, Home } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 
 const communityNavItems = [
   { href: "#about", label: "About" },
-  { href: "#past-events", label: "Past Events" },
-  { href: "#upcoming-events", label: "Upcoming" },
+  { href: "#events", label: "Events", dropdown: [
+    { href: "#past-events", label: "Past Events" },
+    { href: "#upcoming-events", label: "Upcoming Events" },
+  ] },
   { href: "#latest-articles", label: "Latest Articles" },
   { href: "#event-proposal", label: "Submit Proposal" },
   { href: "#collaborations", label: "Collaborations" },
@@ -18,6 +20,7 @@ const communityNavItems = [
 
 export default function CommunityNavigation() {
   const [isOpen, setIsOpen] = useState(false)
+  const [eventsDropdownOpen, setEventsDropdownOpen] = useState(false)
 
   const scrollToSection = (href: string) => {
     const element = document.querySelector(href)
@@ -26,6 +29,23 @@ export default function CommunityNavigation() {
     }
     setIsOpen(false) // Close mobile menu after clicking
   }
+
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      const dropdown = document.getElementById('events-dropdown-menu');
+      const button = document.getElementById('events-dropdown-btn');
+      if (dropdown && button && !dropdown.contains(e.target as Node) && !button.contains(e.target as Node)) {
+        setEventsDropdownOpen(false);
+      }
+    }
+    if (eventsDropdownOpen) {
+      document.addEventListener('mousedown', handleClick);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+    };
+  }, [eventsDropdownOpen]);
 
   return (
     <motion.nav 
@@ -58,14 +78,43 @@ export default function CommunityNavigation() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {communityNavItems.map((item) => (
-              <button
-                key={item.href}
-                onClick={() => scrollToSection(item.href)}
-                className="text-muted-foreground hover:text-foreground transition-colors relative group cursor-pointer"
-              >
-                {item.label}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-neon transition-all group-hover:w-full" />
-              </button>
+              item.dropdown ? (
+                <div key={item.href} className="relative">
+                  <button
+                    id="events-dropdown-btn"
+                    className="text-muted-foreground hover:text-foreground transition-colors relative group cursor-pointer flex items-center"
+                    onClick={() => setEventsDropdownOpen((open) => !open)}
+                    aria-expanded={eventsDropdownOpen}
+                  >
+                    {item.label}
+                    <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-neon transition-all group-hover:w-full" style={{width: eventsDropdownOpen ? '100%' : undefined}} />
+                  </button>
+                  {eventsDropdownOpen && (
+                    <div id="events-dropdown-menu" className="absolute left-0 mt-2 min-w-[160px] bg-white dark:bg-black rounded shadow-lg transition-opacity z-50">
+                      {item.dropdown.map((dropItem) => (
+                        <button
+                          key={dropItem.href}
+                          onClick={() => { scrollToSection(dropItem.href); setEventsDropdownOpen(false); }}
+                          className="block w-full text-left px-4 py-2 h-10 whitespace-nowrap overflow-hidden text-ellipsis text-muted-foreground hover:text-foreground hover:bg-neon/10 transition-colors relative group"
+                        >
+                          {dropItem.label}
+                          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-neon transition-all group-hover:w-full" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  key={item.href}
+                  onClick={() => scrollToSection(item.href)}
+                  className="text-muted-foreground hover:text-foreground transition-colors relative group cursor-pointer"
+                >
+                  {item.label}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-neon transition-all group-hover:w-full" />
+                </button>
+              )
             ))}
             
             {/* Home Button */}
@@ -107,19 +156,46 @@ export default function CommunityNavigation() {
           >
             <div className="px-4 py-4 space-y-4">
               {communityNavItems.map((item, index) => (
-                <motion.div
-                  key={item.href}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <button
-                    onClick={() => scrollToSection(item.href)}
-                    className="block text-muted-foreground hover:text-foreground transition-colors py-2 w-full text-left"
+                item.dropdown ? (
+                  <motion.div
+                    key={item.href}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
                   >
-                    {item.label}
-                  </button>
-                </motion.div>
+                    <details className="w-full">
+                      <summary className="block text-muted-foreground hover:text-foreground transition-colors py-2 w-full text-left cursor-pointer flex items-center">
+                        {item.label}
+                        <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                      </summary>
+                      <div className="pl-4">
+                        {item.dropdown.map((dropItem) => (
+                          <button
+                            key={dropItem.href}
+                            onClick={() => scrollToSection(dropItem.href)}
+                            className="block w-full text-left px-4 py-2 text-muted-foreground hover:text-foreground hover:bg-neon/10 transition-colors"
+                          >
+                            {dropItem.label}
+                          </button>
+                        ))}
+                      </div>
+                    </details>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key={item.href}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <button
+                      onClick={() => scrollToSection(item.href)}
+                      className="block text-muted-foreground hover:text-foreground transition-colors py-2 w-full text-left"
+                    >
+                      {item.label}
+                    </button>
+                  </motion.div>
+                )
               ))}
               
               {/* Mobile Home Button */}
