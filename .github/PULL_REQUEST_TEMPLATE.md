@@ -20,6 +20,9 @@ Please delete options that are not relevant:
 - [ ] Code refactoring (no functional changes)
 - [ ] UI/UX improvement
 - [ ] Dependency update
+
+## Screenshots
+If applicable, add screenshots to help explain your problem.
       
 ## Checklist
 
