@@ -4,6 +4,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
+import { confirmationHtml, confirmationSubject } from '@/lib/email-templates'
 
 export async function POST(request: NextRequest) {
   let body: any
@@ -19,8 +20,10 @@ export async function POST(request: NextRequest) {
     console.log('📝 Form data:', data)
 
     // Email configuration
-    const emailUser = process.env.EMAIL_USER || 'krowdkraft.official@gmail.com'
-    const emailPass = process.env.EMAIL_PASS
+  const emailUser = process.env.EMAIL_USER || 'krowdkraft.official@gmail.com'
+  const emailPass = process.env.EMAIL_PASS
+  const emailSenderName = process.env.EMAIL_SENDER_NAME || 'KrowdKraft'
+  const emailBcc = process.env.EMAIL_BCC
 
     if (!emailPass) {
       console.log('⚠️ EMAIL_PASS not configured in environment variables')
@@ -134,14 +137,14 @@ Project Details: ${data.message}
     }
 
     // Email options
-    const mailOptions = {
-      from: `"KrowdKraft" <${emailUser}>`,
+    const mailOptions: nodemailer.SendMailOptions = {
+      from: `${emailSenderName} <${emailUser}>`,
       to: 'krowdkraft.official@gmail.com',
-      bcc: 'darshankrishna2k2@gmail.com',
       subject: subject,
       text: textContent,
       html: htmlContent,
-      replyTo: data.email
+      replyTo: data.email,
+      ...(emailBcc ? { bcc: emailBcc } : {}),
     }
 
     console.log('📤 Sending email...')
@@ -149,10 +152,48 @@ Project Details: ${data.message}
     console.log('✅ Email sent successfully!')
     console.log('📧 Message ID:', result.messageId)
 
-    return NextResponse.json({ 
-      success: true, 
+    // Send confirmation email to user when possible
+    try {
+      if (data?.email) {
+        const confirmSubject = confirmationSubject(
+          type === 'event-proposal' ? 'event-proposal' : 'quote-request'
+        )
+        const confirmHtml = confirmationHtml({
+          type: type === 'event-proposal' ? 'event-proposal' : 'quote-request',
+          name: data?.name,
+          details:
+            type === 'event-proposal'
+              ? [
+                  { label: 'Event Title', value: data.eventTitle },
+                  { label: 'Event Type', value: data.eventType },
+                  { label: 'Tentative Dates', value: data.tentativeDates },
+                ]
+              : [
+                  { label: 'Service', value: data.service },
+                  { label: 'Budget', value: data.budget },
+                  { label: 'Timeline', value: data.timeline },
+                ],
+        })
+
+        await transporter.sendMail({
+          from: `${emailSenderName} <${emailUser}>`,
+          to: data.email,
+          subject: confirmSubject,
+          html: confirmHtml,
+          replyTo: emailUser,
+        })
+        console.log('✅ Confirmation email sent to user:', data.email)
+      } else {
+        console.log('ℹ️ Skipping confirmation email: no user email present')
+      }
+    } catch (confirmErr) {
+      console.warn('⚠️ Failed to send confirmation email to user:', confirmErr)
+    }
+
+    return NextResponse.json({
+      success: true,
       message: 'Email sent successfully! We will get back to you soon.',
-      messageId: result.messageId
+      messageId: result.messageId,
     })
 
   } catch (error) {
