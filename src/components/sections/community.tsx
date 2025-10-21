@@ -3,6 +3,18 @@
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Heart, MessageCircle, Share2, Zap, Users, Calendar, GraduationCap } from "lucide-react"
+import { communityStats } from "@/data/community-stats"
+
+const iconMap = {
+  Users,
+  Calendar,
+  GraduationCap,
+  Heart,
+  MessageCircle,
+  Share2,
+  Zap,
+  ArrowRight
+}
 
 export default function Community() {
   return (
@@ -25,26 +37,9 @@ export default function Community() {
         </motion.div>
 
         <div className="flex flex-wrap justify-center items-center gap-8 mb-12 max-w-4xl mx-auto px-4">
-          {[
-            {
-              icon: Users,
-              title: "Community Members",
-              metric: "900+",
-              description: "Active members in our growing community"
-            },
-            {
-              icon: Calendar,
-              title: "Events Conducted",
-              metric: "6",
-              description: "Successful seminars and competitions"
-            },
-            {
-              icon: GraduationCap,
-              title: "Institutions Reached",
-              metric: "4",
-              description: "Universities and colleges in our network"
-            }
-          ].map((item, index) => (
+          {communityStats.map((item, index) => {
+            const IconComponent = iconMap[item.icon as keyof typeof iconMap] || Users
+            return (
             <motion.div
               key={item.title}
               initial={{ opacity: 0, y: 30 }}
@@ -61,7 +56,7 @@ export default function Community() {
               className="glass-card p-6 text-center transform-gpu cursor-pointer w-64 flex-shrink-0"
             >
               <div className="w-16 h-16 bg-neon/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <item.icon className="h-8 w-8 text-neon" />
+                <IconComponent className="h-8 w-8 text-neon" />
               </div>
               <div className="text-3xl font-bold neon-text mb-2">{item.metric}</div>
               <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
@@ -69,7 +64,8 @@ export default function Community() {
                 {item.description}
               </p>
             </motion.div>
-          ))}
+            )
+          })}
         </div>
 
         <motion.div
