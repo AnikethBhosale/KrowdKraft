@@ -2,6 +2,14 @@
 
 import { motion } from "framer-motion"
 import { Users, Target, Heart, Zap } from "lucide-react"
+import { communityValues } from "@/data/community-values"
+
+const iconMap = {
+  Users,
+  Target,
+  Heart,
+  Zap
+}
 
 export default function CommunityAbout() {
   return (
@@ -53,28 +61,9 @@ export default function CommunityAbout() {
             viewport={{ once: true }}
             className="space-y-6"
           >
-            {[
-              {
-                icon: Users,
-                title: "Inclusive Community",
-                description: "We welcome everyone regardless of experience level or background."
-              },
-              {
-                icon: Target,
-                title: "Focused Learning",
-                description: "Curated events and workshops targeting relevant skills and knowledge."
-              },
-              {
-                icon: Heart,
-                title: "Supportive Environment",
-                description: "A safe space where members support and uplift each other."
-              },
-              {
-                icon: Zap,
-                title: "Innovation First",
-                description: "Encouraging creative thinking and cutting-edge solutions."
-              }
-            ].map((value, index) => (
+            {communityValues.map((value, index) => {
+              const IconComponent = iconMap[value.icon as keyof typeof iconMap] || Users
+              return (
               <motion.div
                 key={value.title}
                 initial={{ opacity: 0, y: 20 }}
@@ -92,7 +81,7 @@ export default function CommunityAbout() {
               >
                 <div className="flex items-start space-x-4">
                   <div className="w-12 h-12 bg-neon/10 rounded-xl flex items-center justify-center">
-                    <value.icon className="h-6 w-6 text-neon" />
+                    <IconComponent className="h-6 w-6 text-neon" />
                   </div>
                   <div>
                     <h4 className="text-lg font-semibold mb-2">{value.title}</h4>
@@ -102,7 +91,8 @@ export default function CommunityAbout() {
                   </div>
                 </div>
               </motion.div>
-            ))}
+              )
+            })}
           </motion.div>
         </div>
       </div>

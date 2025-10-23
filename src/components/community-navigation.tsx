@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Menu, X, Home } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
 const communityNavItems = [
   { href: "#about", label: "About" },
+  { href: "#dev-hub", label: "Dev Hub" },
   {
     href: "#events",
     label: "Events",
@@ -18,7 +19,6 @@ const communityNavItems = [
     ],
   },
   { href: "#latest-articles", label: "Latest Articles" },
-  { href: "#devhub", label: "Dev Hub" },
   { href: "#event-proposal", label: "Submit Proposal" },
   { href: "#collaborations", label: "Collaborations" },
 ];
@@ -26,6 +26,44 @@ const communityNavItems = [
 export default function CommunityNavigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [eventsDropdownOpen, setEventsDropdownOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
+
+  // Track active section based on scroll position
+  useEffect(() => {
+    const handleScroll = () => {
+      // Collect all section IDs including dropdown items
+      const sections: string[] = [];
+      communityNavItems.forEach(item => {
+        if (item.href.startsWith("#")) {
+          sections.push(item.href.substring(1));
+        }
+        if (item.dropdown) {
+          item.dropdown.forEach(dropItem => {
+            if (dropItem.href.startsWith("#")) {
+              sections.push(dropItem.href.substring(1));
+            }
+          });
+        }
+      });
+      
+      const scrollPosition = window.scrollY + 100; // Offset for header height
+
+      for (const sectionId of sections) {
+        const section = document.getElementById(sectionId);
+        if (section) {
+          const { offsetTop, offsetHeight } = section;
+          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+            setActiveSection(`#${sectionId}`);
+            break;
+          }
+        }
+      }
+    };
+
+    handleScroll(); // Initial check
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const scrollToSection = (href: string) => {
     const element = document.querySelector(href);
@@ -92,7 +130,11 @@ export default function CommunityNavigation() {
                 <div key={item.href} className="relative">
                   <button
                     id="events-dropdown-btn"
-                    className="text-muted-foreground hover:text-foreground transition-colors relative group cursor-pointer flex items-center"
+                    className={`transition-colors relative group cursor-pointer flex items-center ${
+                      item.dropdown.some(dropItem => dropItem.href === activeSection)
+                        ? "text-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
                     onClick={() => setEventsDropdownOpen((open) => !open)}
                     aria-expanded={eventsDropdownOpen}
                   >
@@ -111,8 +153,11 @@ export default function CommunityNavigation() {
                       />
                     </svg>
                     <span
-                      className="absolute -bottom-1 left-0 w-0 h-0.5 bg-neon transition-all group-hover:w-full"
-                      style={{ width: eventsDropdownOpen ? "100%" : undefined }}
+                      className={`absolute -bottom-1 left-0 h-0.5 bg-neon transition-all ${
+                        item.dropdown.some(dropItem => dropItem.href === activeSection) || eventsDropdownOpen
+                          ? "w-full"
+                          : "w-0 group-hover:w-full"
+                      }`}
                     />
                   </button>
                   {eventsDropdownOpen && (
@@ -120,19 +165,25 @@ export default function CommunityNavigation() {
                       id="events-dropdown-menu"
                       className="absolute left-0 mt-2 min-w-[160px] bg-white dark:bg-black rounded shadow-lg transition-opacity z-50"
                     >
-                      {item.dropdown.map((dropItem) => (
-                        <button
-                          key={dropItem.href}
-                          onClick={() => {
-                            scrollToSection(dropItem.href);
-                            setEventsDropdownOpen(false);
-                          }}
-                          className="block w-full text-left px-4 py-2 h-10 whitespace-nowrap overflow-hidden text-ellipsis text-muted-foreground hover:text-foreground hover:bg-neon/10 transition-colors relative group"
-                        >
-                          {dropItem.label}
-                          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-neon transition-all group-hover:w-full" />
-                        </button>
-                      ))}
+                      {item.dropdown.map((dropItem) => {
+                        const isActive = activeSection === dropItem.href;
+                        return (
+                          <button
+                            key={dropItem.href}
+                            onClick={() => {
+                              scrollToSection(dropItem.href);
+                              setEventsDropdownOpen(false);
+                            }}
+                            className={`block w-full text-left px-4 py-2 h-10 whitespace-nowrap overflow-hidden text-ellipsis transition-colors relative group ${
+                              isActive
+                                ? "text-foreground bg-neon/20 font-medium"
+                                : "text-muted-foreground hover:text-foreground hover:bg-neon/10"
+                            }`}
+                          >
+                            {dropItem.label}
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -140,10 +191,14 @@ export default function CommunityNavigation() {
                 <button
                   key={item.href}
                   onClick={() => scrollToSection(item.href)}
-                  className="text-muted-foreground hover:text-foreground transition-colors relative group cursor-pointer"
+                  className={`text-muted-foreground hover:text-foreground transition-colors relative group cursor-pointer ${
+                    activeSection === item.href ? "text-foreground" : ""
+                  }`}
                 >
                   {item.label}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-neon transition-all group-hover:w-full" />
+                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-neon transition-all ${
+                    activeSection === item.href ? "w-full" : "w-0 group-hover:w-full"
+                  }`} />
                 </button>
               )
             )}
@@ -204,7 +259,11 @@ export default function CommunityNavigation() {
                     transition={{ delay: index * 0.1 }}
                   >
                     <details className="w-full">
-                      <summary className="block text-muted-foreground hover:text-foreground transition-colors py-2 w-full text-left cursor-pointer flex items-center">
+                      <summary className={`block transition-colors py-2 w-full text-left cursor-pointer flex items-center ${
+                        item.dropdown.some(dropItem => dropItem.href === activeSection)
+                          ? "text-foreground font-medium"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}>
                         {item.label}
                         <svg
                           className="ml-1 w-4 h-4"
@@ -221,15 +280,22 @@ export default function CommunityNavigation() {
                         </svg>
                       </summary>
                       <div className="pl-4">
-                        {item.dropdown.map((dropItem) => (
-                          <button
-                            key={dropItem.href}
-                            onClick={() => scrollToSection(dropItem.href)}
-                            className="block w-full text-left px-4 py-2 text-muted-foreground hover:text-foreground hover:bg-neon/10 transition-colors"
-                          >
-                            {dropItem.label}
-                          </button>
-                        ))}
+                        {item.dropdown.map((dropItem) => {
+                          const isActive = activeSection === dropItem.href;
+                          return (
+                            <button
+                              key={dropItem.href}
+                              onClick={() => scrollToSection(dropItem.href)}
+                              className={`block w-full text-left px-4 py-2 transition-colors ${
+                                isActive
+                                  ? "text-foreground bg-neon/20 font-medium"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-neon/10"
+                              }`}
+                            >
+                              {dropItem.label}
+                            </button>
+                          );
+                        })}
                       </div>
                     </details>
                   </motion.div>
@@ -242,7 +308,11 @@ export default function CommunityNavigation() {
                   >
                     <button
                       onClick={() => scrollToSection(item.href)}
-                      className="block text-muted-foreground hover:text-foreground transition-colors py-2 w-full text-left"
+                      className={`block py-2 w-full text-left transition-colors ${
+                        activeSection === item.href
+                          ? "text-foreground font-medium"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
                     >
                       {item.label}
                     </button>

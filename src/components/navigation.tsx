@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X, Users } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,36 @@ const navItems = [
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
   const pathname = usePathname();
+
+  // Track active section based on scroll position
+  useEffect(() => {
+    if (pathname !== "/") return;
+
+    const handleScroll = () => {
+      const sections = navItems
+        .filter(item => item.href.startsWith("#"))
+        .map(item => item.href.substring(1));
+      
+      const scrollPosition = window.scrollY + 100; // Offset for header height
+
+      for (const sectionId of sections) {
+        const section = document.getElementById(sectionId);
+        if (section) {
+          const { offsetTop, offsetHeight } = section;
+          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+            setActiveSection(`#${sectionId}`);
+            break;
+          }
+        }
+      }
+    };
+
+    handleScroll(); // Initial check
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [pathname]);
 
   const scrollToSection = (href: string) => {
     if (href.startsWith("/")) {
@@ -83,7 +112,7 @@ export default function Navigation() {
           <div className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => {
               const isRoute = item.href.startsWith("/");
-              const isActive = isRoute && pathname === item.href;
+              const isActive = isRoute ? pathname === item.href : activeSection === item.href;
               const linkClasses = isActive
                 ? baseLink.replace("text-muted-foreground", "text-foreground")
                 : baseLink;
@@ -106,10 +135,12 @@ export default function Navigation() {
                 <button
                   key={item.href}
                   onClick={() => scrollToSection(item.href)}
-                  className={baseLink}
+                  className={linkClasses}
                 >
                   {item.label}
-                  <span className={`${underline} w-0 group-hover:w-full`} />
+                  <span className={`${underline} ${
+                    isActive ? "w-full" : "w-0 group-hover:w-full"
+                  }`} />
                 </button>
               );
             })}
@@ -163,7 +194,7 @@ export default function Navigation() {
             <div className="px-4 py-4 space-y-4">
               {navItems.map((item, index) => {
                 const isRoute = item.href.startsWith("/");
-                const isActive = isRoute && pathname === item.href;
+                const isActive = isRoute ? pathname === item.href : activeSection === item.href;
                 const mobileBase = "block py-2 transition-colors duration-200";
                 const mobileCls = isActive
                   ? `${mobileBase} text-foreground font-medium`

@@ -3,6 +3,14 @@
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Calendar, MapPin, Clock, ArrowRight } from "lucide-react"
+import { upcomingEventCategories } from "@/data/upcoming-events"
+
+const iconMap = {
+  Calendar,
+  MapPin,
+  Clock,
+  ArrowRight
+}
 
 export default function UpcomingEvents() {
   return (
@@ -49,23 +57,9 @@ export default function UpcomingEvents() {
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              {[
-                {
-                  icon: Calendar,
-                  title: "Workshops",
-                  description: "Hands-on learning experiences"
-                },
-                {
-                  icon: Clock,
-                  title: "Seminars",
-                  description: "Expert insights and discussions"
-                },
-                {
-                  icon: MapPin,
-                  title: "Competitions",
-                  description: "Showcase your skills and win"
-                }
-              ].map((item, index) => (
+              {upcomingEventCategories.map((item, index) => {
+                const IconComponent = iconMap[item.icon as keyof typeof iconMap] || Calendar
+                return (
                 <motion.div
                   key={item.title}
                   initial={{ opacity: 0, y: 20 }}
@@ -76,12 +70,13 @@ export default function UpcomingEvents() {
                   className="text-center"
                 >
                   <div className="w-16 h-16 bg-neon/5 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <item.icon className="h-8 w-8 text-neon" />
+                    <IconComponent className="h-8 w-8 text-neon" />
                   </div>
                   <h4 className="font-semibold mb-2">{item.title}</h4>
                   <p className="text-sm text-muted-foreground">{item.description}</p>
                 </motion.div>
-              ))}
+                )
+              })}
             </div>
 
             <motion.div
